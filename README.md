@@ -76,3 +76,20 @@ export default defineConfig([
 ])
 
 ```
+
+## フォルダ構成
+```text
+src
+├─assets #静的ファイル
+├─components #機能によらない共通の画面部品
+├─contexts #データ共有のためのcontextを格納
+├─features #配下に機能フォルダを格納
+│  ├─maze #ランダム迷路を表示する機能
+│  └─searchTree #探索木を視覚的に表示する機能
+├─hooks # 共通的なフックを格納
+├─routes #ルーティングのコードを格納
+├─screens #共通的な画面を格納
+├─services #API呼び出しなど共通的なサービスを格納
+└─utils #共通関数を格納
+```
+
