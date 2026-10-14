@@ -1,26 +1,27 @@
-import { useState } from 'react';
 import './App.css';
-import {
-  buildInitialSearchTreeState,
-  SearchTreeVisualizer,
-} from './features/searchTree';
+import { SearchTreeVisualizer } from './features/searchTree';
 import { useMazeGenerator } from './features/maze/hooks/useMazeGenerator';
 import { MazeScreen } from './features/maze/screens/MazeScreen';
+import { useMazeSearch } from './hooks/useMazeSearch';
 
 function App() {
-  /** 迷路機能から現在の迷路と新規生成処理を取得する */
   const { maze, generateNewMaze } = useMazeGenerator();
+  const {
+    searchTreeState,
+    status,
+    found,
+    error,
+    totalNodes,
+    runSearch,
+    resetSearch,
+  } = useMazeSearch();
 
-  /** 現在の迷路に対応する探索木表示状態を保持する */
-  const [searchTreeState, setSearchTreeState] = useState(() =>
-    buildInitialSearchTreeState(maze),
-  );
-
-  /** 迷路を更新し、対応する探索木表示状態も同期する */
   const handleGenerateNewMaze = () => {
-    const nextMaze = generateNewMaze();
-    setSearchTreeState(buildInitialSearchTreeState(nextMaze));
+    generateNewMaze();
+    resetSearch();
   };
+
+  const isRunning = status === 'searching' || status === 'animating';
 
   return (
     <main className="app-shell">
@@ -29,14 +30,37 @@ function App() {
           <p className="eyebrow">Maze visualization</p>
           <h1>Random Maze + Search Tree</h1>
         </div>
-        <button type="button" onClick={handleGenerateNewMaze}>Randomize</button>
+        <div className="topbar-actions">
+          <button
+            className="search-button"
+            type="button"
+            onClick={() => void runSearch(maze)}
+            disabled={isRunning}
+          >
+            {isRunning ? 'Searching...' : 'Start Search'}
+          </button>
+          <button type="button" onClick={handleGenerateNewMaze}>
+            Randomize
+          </button>
+        </div>
       </header>
 
       <section className="content-panel">
         <MazeScreen maze={maze} searchTreeState={searchTreeState} />
 
         <div className="tree-panel">
-          <h2>Current Search Tree</h2>
+          <div className="tree-heading">
+            <h2>Current Search Tree</h2>
+            <span>{searchTreeState.nodes.length} nodes</span>
+          </div>
+          <p className="search-status" aria-live="polite">
+            {status === 'idle' && 'Ready to search'}
+            {status === 'searching' && 'Requesting search result...'}
+            {status === 'animating' &&
+              `Explored ${searchTreeState.activeNodeIds.length} / ${totalNodes}`}
+            {status === 'completed' && (found ? 'Path found' : 'No path found')}
+            {status === 'error' && error}
+          </p>
           <div className="tree-box">
             <SearchTreeVisualizer state={searchTreeState} />
           </div>

@@ -8,8 +8,8 @@ interface SearchTreeVisualizerProps {
 
 export function SearchTreeVisualizer({
   state,
-  width = 500,
-  height = 380,
+  width = 680,
+  height = 480,
 }: SearchTreeVisualizerProps) {
   const maxDepth = Math.max(...state.nodes.map((node) => node.depth), 0);
   const levels = new Map<number, typeof state.nodes>();
@@ -21,6 +21,10 @@ export function SearchTreeVisualizer({
   });
 
   const layout = new Map<string, { x: number; y: number }>();
+  const maxLevelSize = Math.max(
+    ...Array.from(levels.values(), (nodes) => nodes.length),
+    0,
+  );
 
   levels.forEach((nodes, depth) => {
     const ordered = [...nodes].sort(
@@ -28,23 +32,23 @@ export function SearchTreeVisualizer({
     );
 
     ordered.forEach((node, index) => {
-      const x = 80 + depth * 130;
-      const y = 60 + index * 72;
+      const x = 90 + depth * 160;
+      const y = 60 + index * 76;
       layout.set(node.id, { x, y });
     });
   });
 
-  const scaledWidth = Math.max(width, (maxDepth + 1) * 150 + 80);
-  const scaledHeight = Math.max(height, 120 + state.nodes.length * 26);
+  const scaledWidth = Math.max(width, (maxDepth + 1) * 180 + 100);
+  const scaledHeight = Math.max(height, 120 + maxLevelSize * 76);
 
   return (
     <svg
       viewBox={`0 0 ${scaledWidth} ${scaledHeight}`}
-      width="100%"
-      height="100%"
+      width={scaledWidth}
+      height={scaledHeight}
       role="img"
       aria-label="Search tree visualization"
-      style={{ maxWidth: '100%', borderRadius: 12, background: '#f8fafc' }}
+      style={{ borderRadius: 8, background: '#f8fafc' }}
     >
       {state.nodes.map((node) => {
         if (node.parentId === null) return null;
@@ -58,11 +62,11 @@ export function SearchTreeVisualizer({
           <line
             key={`${node.parentId}-${node.id}`}
             x1={parentPoint.x + 24}
-            y1={parentPoint.y + 20}
-            x2={nodePoint.x - 10}
-            y2={nodePoint.y + 20}
+            y1={parentPoint.y}
+            x2={nodePoint.x - 24}
+            y2={nodePoint.y}
             stroke="#64748b"
-            strokeWidth={2}
+            strokeWidth={2.5}
             strokeDasharray={node.onPath ? '0' : '4 3'}
           />
         );
@@ -80,15 +84,15 @@ export function SearchTreeVisualizer({
             <circle
               cx={point.x}
               cy={point.y}
-              r={18}
+              r={22}
               fill={fill}
               stroke={stroke}
               strokeWidth={node.onPath ? 3 : 1.5}
             />
             <text
               x={point.x}
-              y={point.y + 4}
-              fontSize={11}
+              y={point.y + 5}
+              fontSize={13}
               fontWeight={700}
               textAnchor="middle"
               fill="#111827"

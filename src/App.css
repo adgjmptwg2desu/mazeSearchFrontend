@@ -13,6 +13,12 @@
   margin-bottom: 24px;
 }
 
+.topbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 .eyebrow {
   margin: 0 0 6px;
   font-size: 0.75rem;
@@ -28,8 +34,8 @@
 
 .topbar button {
   border: none;
-  border-radius: 10px;
-  background: #2563eb;
+  border-radius: 6px;
+  background: #245b52;
   color: white;
   padding: 10px 18px;
   font-size: 0.95rem;
@@ -37,9 +43,18 @@
   cursor: pointer;
 }
 
+.topbar button.search-button {
+  background: #c34f32;
+}
+
+.topbar button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
 .content-panel {
   display: grid;
-  grid-template-columns: minmax(360px, 1.5fr) minmax(300px, 1fr);
+  grid-template-columns: minmax(320px, 0.8fr) minmax(0, 1.5fr);
   gap: 24px;
   align-items: start;
 }
@@ -53,15 +68,35 @@
 }
 
 .tree-panel h2 {
-  margin: 0 0 16px;
+  margin: 0;
   font-size: 1.15rem;
 }
 
+.tree-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.tree-heading span,
+.search-status {
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.search-status {
+  min-height: 1.3em;
+  margin: 6px 0 14px;
+}
+
 .tree-box {
-  min-height: 340px;
+  height: min(68vh, 680px);
+  min-height: 420px;
   border-radius: 12px;
   background: #f8fafc;
   padding: 10px;
+  overflow: auto;
 }
 
 @media (max-width: 860px) {
@@ -72,5 +107,9 @@
   .topbar {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .topbar-actions {
+    width: 100%;
   }
 }
