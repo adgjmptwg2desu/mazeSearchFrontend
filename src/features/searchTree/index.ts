@@ -1,4 +1,9 @@
-export type { SearchTreeNode, SearchTreeState, BuildSearchTreeStateInput } from './types';
+export type {
+	SearchTreeNode,
+	SearchTreeState,
+	SearchTreeViewState,
+	BuildSearchTreeStateInput,
+} from './types';
 export {
 	buildInitialSearchTreeState,
 	buildSearchTreeState,

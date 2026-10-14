@@ -1,10 +1,10 @@
-import type { SearchTreeState } from '../../searchTree/types';
+import type { SearchTreeViewState } from '../../searchTree/types';
 import type { Maze } from '../types/maze';
 import './MazeScreen.css';
 
 interface MazeScreenProps {
   maze: Maze;
-  searchTreeState: SearchTreeState;
+  searchTreeState: SearchTreeViewState;
 }
 
 export function MazeScreen({ maze, searchTreeState }: MazeScreenProps) {
@@ -26,6 +26,7 @@ export function MazeScreen({ maze, searchTreeState }: MazeScreenProps) {
             if (cell === 'goal') className += ' goal';
             if (isVisited && cell !== 'wall') className += ' visited';
             if (isPath && cell !== 'wall') className += ' path';
+            if (searchTreeState.currentNodeId === key) className += ' current';
 
             return <div key={key} className={className} aria-label={`cell ${key}`} />;
           }),

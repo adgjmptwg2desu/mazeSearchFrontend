@@ -1,17 +1,20 @@
+import { useState } from 'react';
 import './App.css';
 import { SearchTreeVisualizer } from './features/searchTree';
 import { useMazeGenerator } from './features/maze/hooks/useMazeGenerator';
 import { MazeScreen } from './features/maze/screens/MazeScreen';
 import { useMazeSearch } from './hooks/useMazeSearch';
+import type { SearchAlgorithm } from './services/mazeSearchApi';
 
 function App() {
   const { maze, generateNewMaze } = useMazeGenerator();
+  const [algorithm, setAlgorithm] = useState<SearchAlgorithm>('bfs');
   const {
     searchTreeState,
     status,
     found,
     error,
-    totalNodes,
+    totalExpandedNodes,
     runSearch,
     resetSearch,
   } = useMazeSearch();
@@ -31,10 +34,33 @@ function App() {
           <h1>Random Maze + Search Tree</h1>
         </div>
         <div className="topbar-actions">
+          <fieldset className="algorithm-picker" disabled={isRunning}>
+            <legend>Algorithm</legend>
+            <label>
+              <input
+                type="radio"
+                name="search-algorithm"
+                value="bfs"
+                checked={algorithm === 'bfs'}
+                onChange={() => setAlgorithm('bfs')}
+              />
+              <span>BFS</span>
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="search-algorithm"
+                value="dfs"
+                checked={algorithm === 'dfs'}
+                onChange={() => setAlgorithm('dfs')}
+              />
+              <span>DFS</span>
+            </label>
+          </fieldset>
           <button
             className="search-button"
             type="button"
-            onClick={() => void runSearch(maze)}
+            onClick={() => void runSearch(maze, algorithm)}
             disabled={isRunning}
           >
             {isRunning ? 'Searching...' : 'Start Search'}
@@ -57,8 +83,15 @@ function App() {
             {status === 'idle' && 'Ready to search'}
             {status === 'searching' && 'Requesting search result...'}
             {status === 'animating' &&
-              `Explored ${searchTreeState.activeNodeIds.length} / ${totalNodes}`}
-            {status === 'completed' && (found ? 'Path found' : 'No path found')}
+              `Expanded nodes: ${searchTreeState.expandedNodeIds.length} / ${totalExpandedNodes}${
+                searchTreeState.currentAction === 'backtrack'
+                  ? ` · Backtracking to ${searchTreeState.currentNodeId}`
+                  : searchTreeState.currentNodeId
+                    ? ` · Expanding ${searchTreeState.currentNodeId}`
+                    : ''
+              }`}
+            {status === 'completed' &&
+              `${found ? 'Path found' : 'No path found'} · Expanded nodes: ${totalExpandedNodes}`}
             {status === 'error' && error}
           </p>
           <div className="tree-box">

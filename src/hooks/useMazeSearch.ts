@@ -1,24 +1,27 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Maze } from '../features/maze/types/maze';
-import type { SearchTreeState } from '../features/searchTree/types';
-import { searchMaze } from '../services/mazeSearchApi';
+import type { SearchTreeViewState } from '../features/searchTree/types';
+import { searchMaze, type SearchAlgorithm } from '../services/mazeSearchApi';
 
 const STEP_DELAY_MS = 35;
-const EMPTY_SEARCH_TREE: SearchTreeState = {
+const EMPTY_SEARCH_TREE: SearchTreeViewState = {
   nodes: [],
   activeNodeIds: [],
   pathNodeIds: [],
+  expandedNodeIds: [],
+  currentNodeId: null,
+  currentAction: null,
 };
 
 type SearchStatus = 'idle' | 'searching' | 'animating' | 'completed' | 'error';
 
 export function useMazeSearch() {
   const [searchTreeState, setSearchTreeState] =
-    useState<SearchTreeState>(EMPTY_SEARCH_TREE);
+    useState<SearchTreeViewState>(EMPTY_SEARCH_TREE);
   const [status, setStatus] = useState<SearchStatus>('idle');
   const [found, setFound] = useState<boolean | null>(null);
   const [error, setError] = useState('');
-  const [totalNodes, setTotalNodes] = useState(0);
+  const [totalExpandedNodes, setTotalExpandedNodes] = useState(0);
   const controllerRef = useRef<AbortController | null>(null);
 
   const resetSearch = () => {
@@ -28,10 +31,10 @@ export function useMazeSearch() {
     setStatus('idle');
     setFound(null);
     setError('');
-    setTotalNodes(0);
+    setTotalExpandedNodes(0);
   };
 
-  const runSearch = async (maze: Maze) => {
+  const runSearch = async (maze: Maze, algorithm: SearchAlgorithm) => {
     controllerRef.current?.abort();
     const controller = new AbortController();
     controllerRef.current = controller;
@@ -39,34 +42,43 @@ export function useMazeSearch() {
     setStatus('searching');
     setFound(null);
     setError('');
-    setTotalNodes(0);
+    setTotalExpandedNodes(0);
 
     try {
-      const result = await searchMaze(maze, controller.signal);
+      const result = await searchMaze(maze, algorithm, controller.signal);
       if (controller.signal.aborted) return;
 
-      setTotalNodes(result.state.nodes.length);
+      setTotalExpandedNodes(result.expandedNodeCount);
       setFound(result.found);
       setStatus('animating');
 
-      for (
-        let visibleCount = 1;
-        visibleCount <= result.state.activeNodeIds.length;
-        visibleCount += 1
-      ) {
+      const activeNodeIds: string[] = [];
+      const expandedNodeIds: string[] = [];
+
+      for (let stepIndex = 0; stepIndex < result.steps.length; stepIndex += 1) {
         await new Promise((resolve) => setTimeout(resolve, STEP_DELAY_MS));
         if (controller.signal.aborted) return;
 
-        const activeNodeIds = result.state.activeNodeIds.slice(0, visibleCount);
+        const step = result.steps[stepIndex];
+        if (step.action === 'expand' || step.action === 'goal') {
+          if (!activeNodeIds.includes(step.nodeId)) activeNodeIds.push(step.nodeId);
+        }
+        if (step.action === 'expand') {
+          if (!expandedNodeIds.includes(step.nodeId)) expandedNodeIds.push(step.nodeId);
+        }
+
         const visibleNodeIds = new Set(activeNodeIds);
-        const isComplete = visibleCount === result.state.activeNodeIds.length;
+        const isComplete = stepIndex === result.steps.length - 1;
 
         setSearchTreeState({
           nodes: result.state.nodes
             .filter((node) => visibleNodeIds.has(node.id))
             .map((node) => ({ ...node, onPath: isComplete && node.onPath })),
-          activeNodeIds,
+          activeNodeIds: [...activeNodeIds],
           pathNodeIds: isComplete ? result.state.pathNodeIds : [],
+          expandedNodeIds: [...expandedNodeIds],
+          currentNodeId: step.nodeId,
+          currentAction: step.action,
         });
       }
 
@@ -90,7 +102,7 @@ export function useMazeSearch() {
     status,
     found,
     error,
-    totalNodes,
+    totalExpandedNodes,
     runSearch,
     resetSearch,
   };

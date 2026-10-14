@@ -15,6 +15,7 @@
 
 .topbar-actions {
   display: flex;
+  align-items: center;
   flex-wrap: wrap;
   gap: 10px;
 }
@@ -50,6 +51,54 @@
 .topbar button:disabled {
   cursor: wait;
   opacity: 0.65;
+}
+
+.algorithm-picker {
+  display: flex;
+  gap: 4px;
+  margin: 0;
+  padding: 3px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+}
+
+.algorithm-picker legend {
+  padding: 0 4px;
+  color: #64748b;
+  font-size: 0.72rem;
+}
+
+.algorithm-picker label {
+  position: relative;
+  cursor: pointer;
+}
+
+.algorithm-picker input {
+  position: absolute;
+  opacity: 0;
+}
+
+.algorithm-picker span {
+  display: block;
+  padding: 5px 9px;
+  border-radius: 4px;
+  color: #334155;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.algorithm-picker input:checked + span {
+  background: #245b52;
+  color: #fff;
+}
+
+.algorithm-picker input:focus-visible + span {
+  outline: 2px solid #c34f32;
+  outline-offset: 2px;
+}
+
+.algorithm-picker:disabled {
+  opacity: 0.6;
 }
 
 .content-panel {

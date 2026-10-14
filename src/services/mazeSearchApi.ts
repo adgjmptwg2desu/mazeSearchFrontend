@@ -3,16 +3,26 @@ import type { SearchTreeState } from '../features/searchTree/types';
 
 export interface MazeSearchResponse {
   found: boolean;
+  expandedNodeCount: number;
   state: SearchTreeState;
+  steps: SearchStep[];
 }
+
+export interface SearchStep {
+  action: 'expand' | 'backtrack' | 'goal';
+  nodeId: string;
+}
+
+export type SearchAlgorithm = 'bfs' | 'dfs';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
 
 export async function searchMaze(
   maze: Maze,
+  algorithm: SearchAlgorithm = 'bfs',
   signal?: AbortSignal,
 ): Promise<MazeSearchResponse> {
-  const response = await fetch(`${API_BASE_URL}/api/search`, {
+  const response = await fetch(`${API_BASE_URL}/api/search?algorithm=${algorithm}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

@@ -1,7 +1,8 @@
-import type { SearchTreeState } from '../types';
+import { useEffect, useRef } from 'react';
+import type { SearchTreeViewState } from '../types';
 
 interface SearchTreeVisualizerProps {
-  state: SearchTreeState;
+  state: SearchTreeViewState;
   width?: number;
   height?: number;
 }
@@ -21,6 +22,25 @@ export function SearchTreeVisualizer({
   });
 
   const layout = new Map<string, { x: number; y: number }>();
+  const nodeById = new Map(state.nodes.map((node) => [node.id, node]));
+  const currentPathIds = new Set<string>();
+  let currentPathNode = state.currentNodeId
+    ? nodeById.get(state.currentNodeId)
+    : undefined;
+
+  while (currentPathNode) {
+    currentPathIds.add(currentPathNode.id);
+    currentPathNode = currentPathNode.parentId
+      ? nodeById.get(currentPathNode.parentId)
+      : undefined;
+  }
+
+  const currentNodeRef = useRef<SVGGElement | null>(null);
+
+  useEffect(() => {
+    currentNodeRef.current?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  }, [state.currentNodeId]);
+
   const maxLevelSize = Math.max(
     ...Array.from(levels.values(), (nodes) => nodes.length),
     0,
@@ -57,6 +77,8 @@ export function SearchTreeVisualizer({
         const nodePoint = layout.get(node.id);
 
         if (!parentPoint || !nodePoint) return null;
+        const isOnCurrentPath =
+          currentPathIds.has(node.id) && currentPathIds.has(node.parentId);
 
         return (
           <line
@@ -65,9 +87,9 @@ export function SearchTreeVisualizer({
             y1={parentPoint.y}
             x2={nodePoint.x - 24}
             y2={nodePoint.y}
-            stroke="#64748b"
+            stroke={isOnCurrentPath ? '#c34f32' : '#64748b'}
             strokeWidth={2.5}
-            strokeDasharray={node.onPath ? '0' : '4 3'}
+            strokeDasharray={node.onPath || isOnCurrentPath ? '0' : '4 3'}
           />
         );
       })}
@@ -76,18 +98,32 @@ export function SearchTreeVisualizer({
         const point = layout.get(node.id);
         if (!point) return null;
 
-        const fill = node.onPath ? '#60a5fa' : node.visited ? '#fbbf24' : '#e2e8f0';
-        const stroke = node.id === state.pathNodeIds[0] ? '#16a34a' : '#1f2937';
+        const isCurrent = state.currentNodeId === node.id;
+        const isExpanded = state.expandedNodeIds.includes(node.id);
+        const fill = isCurrent
+          ? state.currentAction === 'backtrack'
+            ? '#245b52'
+            : '#c34f32'
+          : node.onPath
+            ? '#60a5fa'
+            : isExpanded
+              ? '#fbbf24'
+              : '#e2e8f0';
+        const stroke = isCurrent
+          ? '#111827'
+          : node.id === state.pathNodeIds[0]
+            ? '#16a34a'
+            : '#1f2937';
 
         return (
-          <g key={node.id}>
+          <g key={node.id} ref={isCurrent ? currentNodeRef : null}>
             <circle
               cx={point.x}
               cy={point.y}
               r={22}
               fill={fill}
               stroke={stroke}
-              strokeWidth={node.onPath ? 3 : 1.5}
+              strokeWidth={isCurrent || node.onPath ? 3 : 1.5}
             />
             <text
               x={point.x}
@@ -95,7 +131,7 @@ export function SearchTreeVisualizer({
               fontSize={13}
               fontWeight={700}
               textAnchor="middle"
-              fill="#111827"
+              fill={isCurrent ? '#ffffff' : '#111827'}
             >
               {node.label}
             </text>

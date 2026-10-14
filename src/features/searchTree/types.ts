@@ -16,6 +16,12 @@ export interface SearchTreeState {
   pathNodeIds: string[];
 }
 
+export interface SearchTreeViewState extends SearchTreeState {
+  expandedNodeIds: string[];
+  currentNodeId: string | null;
+  currentAction: 'expand' | 'backtrack' | 'goal' | null;
+}
+
 export interface BuildSearchTreeStateInput {
   startPosition: Position;
   goalPosition: Position;

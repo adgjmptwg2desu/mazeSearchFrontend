@@ -44,3 +44,9 @@
 .cell.path {
   background: #60a5fa;
 }
+
+.cell.current {
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 0 0 3px #c34f32;
+}
